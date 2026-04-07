@@ -10,6 +10,7 @@ COLUMNS = ["Graphics", "Networking", "Audio", "Storage", "USB Ports"]
 def format_score(value):
     return int(value) if value % 1 == 0 else value
 
+
 def get_rows():
     data_list = []
     for filepath in glob.glob("**/*.txt", recursive=True):
@@ -24,9 +25,19 @@ def get_rows():
                 })
         except Exception:
             continue
+
     data_list.sort(key=lambda x: x['earned'], reverse=True)
+
+    current_rank = 0
+    last_score = None
+    rank_classes = {1: "gold", 2: "silver", 3: "bronze"}
+
     for item in data_list[:5]:
-        print(f"<tr><td>{escape(item['name'])}</td><td>{item['score_str']}</td></tr>")
+        if item['earned'] != last_score:
+            current_rank += 1
+        last_score = item['earned']
+        row_class = rank_classes.get(current_rank, "")
+        print(f"<tr class='{row_class}'><td>{escape(item['name'])}</td><td>{item['score_str']}</td></tr>")
 
 
 def parse_file(path):
