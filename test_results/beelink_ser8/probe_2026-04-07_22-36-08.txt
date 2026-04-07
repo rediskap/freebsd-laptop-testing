@@ -28,7 +28,7 @@ Hardware: Beelink SER8
         device     = 'Wi-Fi 6 AX200'
         class      = network
 
-  Category Total Score: 2/2
+  Category Total Score: 1.5/2
 
 --------------------
 
