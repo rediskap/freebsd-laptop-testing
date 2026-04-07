@@ -7,13 +7,16 @@ import os
 COLUMNS = ["Graphics", "Networking", "Audio", "Storage", "USB Ports"]
 
 
+def format_score(value):
+    return int(value) if value % 1 == 0 else value
+
 def get_rows():
     data_list = []
     for filepath in glob.glob("**/*.txt", recursive=True):
         try:
             model, ranking, _, _ = parse_file(filepath)
             if model and "/" in ranking:
-                earned = int(ranking.split('/')[0])
+                earned = float(ranking.split('/')[0])
                 data_list.append({
                     "name": model,
                     "score_str": ranking,
@@ -34,8 +37,8 @@ def parse_file(path):
     data = {c: [] for c in COLUMNS}
     scores = {c: None for c in COLUMNS}
 
-    total_earned = 0
-    total_possible = 0
+    total_earned = 0.0
+    total_possible = 0.0
     current_section = None
 
     for line in lines:
@@ -44,6 +47,7 @@ def parse_file(path):
             parts = line.split("Hardware:", 1)
             if len(parts) > 1:
                 model = parts[1].strip()
+
         m_sec = re.match(r"-\s+(.+)", line)
         if m_sec:
             section = m_sec.group(1)
@@ -53,15 +57,15 @@ def parse_file(path):
             m_dev = re.match(r"\s*device\s+=\s+'(.+)'", line)
             if m_dev:
                 data[current_section].append(m_dev.group(1))
-            m_score = re.search(r"Category Total Score:\s*(\d+)/(\d+)", line)
+            m_score = re.search(r"Category Total Score:\s*([\d.]+)/([\d.]+)", line)
             if m_score:
-                earned = int(m_score.group(1))
-                possible = int(m_score.group(2))
-                scores[current_section] = f"{earned}/{possible}"
+                earned = float(m_score.group(1))
+                possible = float(m_score.group(2))
+                scores[current_section] = f"{format_score(earned)}/{format_score(possible)}"
                 total_earned += earned
                 total_possible += possible
 
-    ranking = f"{total_earned}/{total_possible}"
+    ranking = f"{format_score(total_earned)}/{format_score(total_possible)}"
     return model, ranking, data, scores
 
 
@@ -73,10 +77,12 @@ def emit_html(model, ranking, data, scores, path):
     file_dir = os.path.dirname(path)
     comment_file = os.path.join(file_dir, "comments.md")
     comment_link_html = ""
+
     if os.path.exists(comment_file):
         clean_comment_path = comment_file.lstrip("./")
         comment_url = f"https://github.com/{repo}/blob/{branch}/{clean_comment_path}"
         comment_link_html = f"<br><a href='{comment_url}' style='font-size: 0.8em;'>View Comment</a>"
+
     print(f"<tr>", end="")
     print(f"<td><strong>{escape(model)}</strong><br>", end="")
     print(f"<a href='{github_link}' style='font-size: 0.8em;'>View Probe</a>", end="")
