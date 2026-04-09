@@ -20,30 +20,18 @@ def get_rows():
                 parts = ranking.split('/')
                 earned = float(parts[0])
                 possible = float(parts[1])
-                if earned == possible and possible > 0:
+
+                # Filter specifically for 8/8 scores
+                if earned == 8 and possible == 8:
                     data_list.append({
                         "name": model,
-                        "score_str": ranking,
-                        "earned": earned
+                        "score_str": ranking
                     })
         except Exception:
             continue
 
-    data_list.sort(key=lambda x: x['earned'], reverse=True)
-
-    for item in data_list:
+    for item in data_list[:10]:
         print(f"<tr><td>{escape(item['name'])}</td><td>{item['score_str']}</td></tr>")
-
-    current_rank = 0
-    last_score = None
-    rank_classes = {1: "gold", 2: "silver", 3: "bronze"}
-
-    for item in data_list[:5]:
-        if item['earned'] != last_score:
-            current_rank += 1
-        last_score = item['earned']
-        row_class = rank_classes.get(current_rank, "")
-        print(f"<tr class='{row_class}'><td>{escape(item['name'])}</td><td>{item['score_str']}</td></tr>")
 
 
 def parse_file(path):
